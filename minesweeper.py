@@ -195,6 +195,6 @@ if __name__ == '__main__':
     mines_game = MinesGame(16, 16, 40)
     
     mines_game.go_performance()
-
+    
     #mines_game.go()
     #mines_game.print()
