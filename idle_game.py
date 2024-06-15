@@ -31,10 +31,10 @@ class IdleGame:
             a[1] -= 1
 
     def op_val(self, a, b, op):
-        if op == '+':
+        if op == '+=':
             a[0] += b[0]*pow(10, b[1]-a[1])
             self.fix_val(a)
-        elif op == '-':
+        elif op == '-=':
             a[0] -= b[0]*pow(10, b[1]-a[1])
             self.fix_val(a)
         elif op == '>=':
@@ -144,13 +144,13 @@ class IdleGame:
     def per_sec_auto_play(self):
         a = self.elem[self.assetall_key]
         b = self.elem[self.asset_key]
-        self.op_val(a, b, '+')
+        self.op_val(a, b, '+=')
 
         # random to check if we can up
         key = random.choice(self.attr_name)
         c = self.elem[key+'cost']
         if self.op_val(a, c, '>='):
-            self.op_val(a, c, '-')
+            self.op_val(a, c, '-=')
             self.attr_lvup(key)
             if self.check_beat_enemy():
                 self.attr_lvup(self.enemy_key)
