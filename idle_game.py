@@ -1,4 +1,5 @@
-import time, random
+import random, json
+from datetime import datetime, timezone
 
 class IdleGame:
 
@@ -16,6 +17,8 @@ class IdleGame:
     asset_init = [1, 0]
     asset_step = 1.1
     assetall_key = 'asset_all'
+
+    json_filename = 'idle_game.json'
 
     elem = {}
 
@@ -46,6 +49,8 @@ class IdleGame:
         return 0    
 
     def attr_initial(self):
+        self.elem['now'] = datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S')
+
         for key in self.attr_name:
             self.elem[key] = self.attr_init.copy()
             self.elem[key+'lv'] = 1
@@ -61,6 +66,20 @@ class IdleGame:
         self.elem[self.asset_key] = self.asset_init.copy()
 
         self.elem[self.assetall_key] = [0, 0]
+
+    def load_file(self):
+        try:
+            jsonFile = open(self.json_filename, 'r')
+            self.elem = json.load(jsonFile)
+        except:
+            pass
+
+    def save_file(self):
+        try:
+            jsonFile = open(self.json_filename, 'w')
+            json.dump(self.elem, jsonFile, indent=2, separators=(',', ':'))
+        except:
+            pass
 
     def attr_up_self(self, key):
         valid_key = self.attr_name + [self.hit_key, self.enemy_key, self.asset_key]
@@ -159,7 +178,12 @@ class IdleGame:
 if __name__ == '__main__':
     game = IdleGame()
     
-    for day in range(30):
-        for idx in range(24*60*60):
-            game.per_sec_auto_play()
-        game.print_elem()
+    game.load_file()
+
+    if 1:
+        for day in range(1):
+            for idx in range(24*60*60):
+                game.per_sec_auto_play()
+            game.print_elem()
+    
+        game.save_file()
