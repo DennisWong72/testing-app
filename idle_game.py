@@ -50,6 +50,7 @@ class IdleGame:
 
     def attr_initial(self):
         self.elem['now'] = datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S')
+        self.elem['play_sec'] = 0
 
         for key in self.attr_name:
             self.elem[key] = self.attr_init.copy()
@@ -147,10 +148,13 @@ class IdleGame:
         return f'{a[0]:.0f}*10^{a[1]}'
 
     def print_elem(self):
+        play_days = self.elem['play_sec']/(24*60*60)
+        print('You already plays %.2f days.' % play_days)
         for key in self.attr_name:
             print('%s: Lv %d, %s, UpCost %s' % (key.capitalize(), self.elem[key+'lv'], self.get_attr_str(key), self.get_attr_str(key+'cost')))
         print('%s = %s' % (self.hit_key.capitalize(), self.get_attr_str(self.hit_key)))
-        print('%s: Lv %d, %s' % (self.enemy_key.capitalize(), self.elem[self.enemy_key+'lv'], self.get_attr_str(self.enemy_key)))
+        print('%s: Lv %d, %s, up %.2f per day' % (self.enemy_key.capitalize(), self.elem[self.enemy_key+'lv'], self.get_attr_str(self.enemy_key),
+                                                  self.elem[self.enemy_key+'lv'] / play_days))
         print('%s = %s, %s = %s' % (self.assetall_key.capitalize(), self.get_attr_str(self.assetall_key), 
                                     self.asset_key.capitalize(), self.get_attr_str(self.asset_key)))
         print('='*30)
@@ -160,30 +164,33 @@ class IdleGame:
         b = self.elem[self.enemy_key]
         return self.op_val(a, b, '>=')
     
-    def per_sec_auto_play(self):
+    def auto_play(self, sec):
         a = self.elem[self.assetall_key]
         b = self.elem[self.asset_key]
-        self.op_val(a, b, '+=')
 
-        # random to check if we can up
-        key = random.choice(self.attr_name)
-        c = self.elem[key+'cost']
-        if self.op_val(a, c, '>='):
-            self.op_val(a, c, '-=')
-            self.attr_lvup(key)
-            if self.check_beat_enemy():
-                self.attr_lvup(self.enemy_key)
-            #self.print_elem()
+        self.elem['play_sec'] += sec
+        for i in range(sec):
+            self.op_val(a, b, '+=')
+
+        cont = True
+        while cont:
+            cont = False
+            for key in self.attr_name:
+                c = self.elem[key+'cost']
+                if self.op_val(a, c, '>='):
+                    cont = True
+                    self.op_val(a, c, '-=')
+                    self.attr_lvup(key)
+                    if self.check_beat_enemy():
+                        self.attr_lvup(self.enemy_key)
+                    #self.print_elem()
 
 if __name__ == '__main__':
     game = IdleGame()
-    
     game.load_file()
-
-    if 1:
-        for day in range(1):
-            for idx in range(24*60*60):
-                game.per_sec_auto_play()
-            game.print_elem()
     
-        game.save_file()
+    for day in range(365*24):
+        game.auto_play(60*60)
+
+    game.print_elem()
+    game.save_file()
